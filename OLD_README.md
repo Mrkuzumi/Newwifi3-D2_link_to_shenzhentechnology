@@ -75,68 +75,6 @@ chmod +x /etc/firewall.user
 > ## 有时候修改完设置重启路由器依然上不了网，就再ssh连接192.168.1.1执行第二段命令就好了
 >
 
-# **2026.6.6更新：**
-## 这一版脚本是claude总结的命令，似乎更简洁
-
-```bash
-
-uci set dhcp.@dnsmasq[0].server="/sztu.edu.cn/10.1.20.92"
-uci commit dhcp
-
-# 同时把学校 DNS 加入上游服务器列表（兜底）
-echo "server=10.1.20.92" >> /etc/dnsmasq.conf
-
-# 重启 dnsmasq 使 DNS 配置生效
-/etc/init.d/dnsmasq restart
-
-# ===== 第2步：让内网流量跳过 NAT 伪装，保持原始源 IP =====
-# 先删掉原来的全局 MASQUERADE 规则
-iptables -t nat -D POSTROUTING -o eth0.2 -j MASQUERADE 2>/dev/null
-
-# 重新按次序加规则：内网地址段先放行（不做伪装），外网才伪装
-iptables -t nat -A POSTROUTING -o eth0.2 -d 10.0.0.0/8     -j ACCEPT
-iptables -t nat -A POSTROUTING -o eth0.2 -d 172.16.0.0/12  -j ACCEPT
-iptables -t nat -A POSTROUTING -o eth0.2 -d 192.168.0.0/16 -j ACCEPT
-iptables -t nat -A POSTROUTING -o eth0.2 -j MASQUERADE
-
-# ===== 第3步：把这些新规则更新到 firewall.user，保证重启不丢 =====
-cat > /etc/firewall.user << 'EOF'
-echo 1 > /proc/sys/net/ipv4/ip_forward
-iptables -t nat -A POSTROUTING -o eth0.2 -d 10.0.0.0/8     -j ACCEPT
-iptables -t nat -A POSTROUTING -o eth0.2 -d 172.16.0.0/12  -j ACCEPT
-iptables -t nat -A POSTROUTING -o eth0.2 -d 192.168.0.0/16 -j ACCEPT
-iptables -t nat -A POSTROUTING -o eth0.2 -j MASQUERADE
-iptables -t mangle -A POSTROUTING -o eth0.2 -j TTL --ttl-set 128
-EOF
-
-chmod +x /etc/firewall.user
-/etc/init.d/firewall restart
-
-```
-
-# **验证：**
-
-```bash
-# 1. NAT 规则顺序（内网 ACCEPT 在前，MASQUERADE 在最后）
-iptables -t nat -L POSTROUTING -n --line-numbers
-
-# 2. TTL 规则是否在
-iptables -t mangle -L POSTROUTING -n | grep TTL
-
-# 3. IP 转发是否开启
-cat /proc/sys/net/ipv4/ip_forward
-
-```
-
-```
-预期结果：
-- NAT 表：先看到 3 条 ACCEPT（10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16），最后一条 MASQUERADE
-- mangle 表：有一条 TTL set to 128
-- ip_forward 显示 1
-
-三条都符合就说明一切正常。
-
-```
 
 
 
@@ -192,8 +130,3 @@ ping -c 4 www.baidu.com  # 外网
 > 
 ## 整理By：Mika
 
-
-
-
-echo "10.1.20.97 auth.sztu.edu.cn" >> /etc/hosts
-/etc/init.d/dnsmasq restart
