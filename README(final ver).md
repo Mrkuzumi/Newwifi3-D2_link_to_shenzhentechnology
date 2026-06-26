@@ -1,6 +1,6 @@
 # 新路由3 刷机 + 校园网PJ + 访问内网 完整指南
 
-> 适用于 xxxx校园网环境，其他学校请根据实际情况修改参数。
+> 适用于 SZTU（深圳技术大学）校园网环境，其他学校请根据实际情况修改参数。
 
 ---
 # 一切的一切刷机的前提：你的新路由3有不死Breed
@@ -83,14 +83,14 @@ ping -c 4 www.baidu.com # 外网
 
 ### 4.1 核心问题
 
-校园网的内网域名（如 `jwxt.xxxx.edu.cn`）由学校自己的 DNS 服务器解析，**公网 DNS 查不到**。
+校园网的内网域名（如 `jwxt.sztu.edu.cn`）由学校自己的 DNS 服务器解析，**公网 DNS 查不到**。
 
 ### 4.2 学校 DNS 信息
 
 | IP | 角色 | 备注 |
 |----|------|------|
-| `10.1.20.30` | DNS 服务器 | 解析 `*.xxxx.edu.cn` |
-| `10.1.20.92` | **网站 IP**（ssdf.xxxx.edu.cn） | 这不是 DNS！之前搞错了 |
+| `10.1.20.30` | DNS 服务器 | 解析 `*.sztu.edu.cn` |
+| `10.1.20.92` | **网站 IP**（ssdf.sztu.edu.cn） | 这不是 DNS！之前搞错了 |
 | `172.19.0.5` | 深澜认证 Web 页面 | 登录校园网账号用 |
 
 ### 4.3 已验证的学校内网域名与 IP 对照表
@@ -99,10 +99,10 @@ ping -c 4 www.baidu.com # 外网
 
 | 域名 | IP | 用途 |
 |------|-----|------|
-| `www.xxxx.edu.cn` | `10.11.154.80` | 学校官网 |
-| `jwxt.xxxx.edu.cn` | `10.11.148.105` | 教务系统 |
-| `ssdf.xxxx.edu.cn` | `10.1.20.92` | 电费查询 |
-| `auth.xxxx.edu.cn` | `10.1.20.97` | 统一认证 |
+| `www.sztu.edu.cn` | `10.11.154.80` | 学校官网 |
+| `jwxt.sztu.edu.cn` | `10.11.148.105` | 教务系统 |
+| `ssdf.sztu.edu.cn` | `10.1.20.92` | 电费查询 |
+| `auth.sztu.edu.cn` | `10.1.20.97` | 统一认证 |
 
 ### 4.4 添加新域名（每次遇到打不开的学校内网就做一次）
 
@@ -111,7 +111,7 @@ ping -c 4 www.baidu.com # 外网
 1. 电脑**断开路由器 WiFi，网线直连校园网**
 2. 终端执行：
 ```powershell
-nslookup 你想查的域名.xxxx.edu.cn
+nslookup 你想查的域名.sztu.edu.cn
 ```
    记下返回的 IPv4 地址（如 `10.x.x.x`）
 3. 重新连回路由器，SSH 进去执行：
@@ -123,10 +123,10 @@ echo "查到的IP[空格]域名" >> /etc/hosts
 
 **一键批量添加（把上面表里的全部写入）：**
 ```bash
-echo "10.11.154.80 www.xxxx.edu.cn" >> /etc/hosts
-echo "10.11.148.105 jwxt.xxxx.edu.cn" >> /etc/hosts
-echo "10.1.20.92 ssdf.xxxx.edu.cn" >> /etc/hosts
-echo "10.1.20.97 auth.xxxx.edu.cn" >> /etc/hosts
+echo "10.11.154.80 www.sztu.edu.cn" >> /etc/hosts
+echo "10.11.148.105 jwxt.sztu.edu.cn" >> /etc/hosts
+echo "10.1.20.92 ssdf.sztu.edu.cn" >> /etc/hosts
+echo "10.1.20.97 auth.sztu.edu.cn" >> /etc/hosts
 /etc/init.d/dnsmasq restart
 ```
 
@@ -190,15 +190,15 @@ echo "===== 3. TTL 规则 ====="
 iptables -t mangle -L POSTROUTING -n | grep TTL
 
 echo "===== 4. 内网域名解析 ====="
-nslookup www.xxxx.edu.cn
-nslookup jwxt.xxxx.edu.cn
-nslookup ssdf.xxxx.edu.cn
-nslookup auth.xxxx.edu.cn
+nslookup www.sztu.edu.cn
+nslookup jwxt.sztu.edu.cn
+nslookup ssdf.sztu.edu.cn
+nslookup auth.sztu.edu.cn
 
 echo "===== 5. 连通性 ====="
 ping -c 2 172.19.0.5
 ping -c 2 www.baidu.com
-ping -c 2 jwxt.xxxx.edu.cn
+ping -c 2 jwxt.sztu.edu.cn
 ```
 
 预期：
