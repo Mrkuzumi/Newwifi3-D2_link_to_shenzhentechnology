@@ -128,7 +128,7 @@ echo "10.11.148.105 jwxt.sztu.edu.cn" >> /etc/hosts
 echo "10.1.20.92 ssdf.sztu.edu.cn" >> /etc/hosts
 echo "10.1.20.97 auth.sztu.edu.cn" >> /etc/hosts
 echo "10.11.155.22 stu.sztu.edu.cn" >> /etc/hosts
-
+echo "10.11.153.124 ddpj.sztu.edu.cn" >> /etc/hosts
 /etc/init.d/dnsmasq restart
 ```
 
